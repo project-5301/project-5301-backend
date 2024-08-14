@@ -1,6 +1,6 @@
 const UserDetails = require("../models/userDetail");
 const User = require("../models/user");
-const logger = require("../utils/logger");
+const logger = require("../routes/utils/logger");
 
 // Regular expression for phone number validation
 const phoneNumberRegex = /^\+?[1-9]\d{1,14}$/; // E.164 format

@@ -4,7 +4,7 @@ const categoryController = require("../controller/categoryController");
 const authMiddleware = require("../middlewares/authMiddleware");
 
 // Route to add new category detail
-router.post("/add", authMiddleware, categoryController.addCategoryDetail);
+router.post("/category", categoryController.addCategoryDetail);
 
 // Route to update category detail
 router.put(

@@ -4,24 +4,25 @@ const User = require("../models/user");
 // Add new category detail
 exports.addCategoryDetail = async (req, res) => {
   try {
-    const { categoryTitle, description, categoryDoc } = req.body;
-    const userId = req.user.id;
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    const { categoryId, categoryName } = req.body;
+    const userId = 1; 
+    // const user = await User.findById(userId);
+    if (!categoryId || !categoryName) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }    
+    // if (!user) {
+    //   return res.status(404).json({ message: "User not found" });
+    // }
     const categoryDetail = new CategoryDetails({
-      categoryTitle,
-      description,
-      categoryDoc,
-      createdBy: userId,
+      categoryName,
+      categoryId,
+      createdBy: "userId",
     });
-
+    console.log(categoryDetail);
     await categoryDetail.save();
 
     res.status(201).json({
       status: "success",
-      message: "Category detail added successfully",
       data: categoryDetail,
     });
   } catch (error) {

@@ -1,11 +1,11 @@
 const User = require("../models/user");
 const bcrypt = require("bcryptjs");
-const { generateToken } = require("../utils/jwt");
+const { generateToken } = require("../routes/utils/jwt");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 require("dotenv").config();
-const logger = require("../utils/logger");
+const logger = require("../routes/utils/logger");
 const { sendEmail } = require("./emailService");
 
 // Register User
