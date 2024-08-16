@@ -4,24 +4,24 @@ const classController = require("../controller/classesController");
 const authMiddleware = require("../middlewares/authMiddleware");
 
 // Route to add new category detail
-router.post("/create", classController.create);
+router.post("/classes", classController.create);
 
 // Route to get category detail by ID
 router.get(
-    "/get/:id",
+    "/classes",
     authMiddleware,
     classController.fetch
 );
 // Route to update category detail
 router.patch(
-    "/category/:categoryID",
+    "/:classId",
     authMiddleware,
     classController.update
 );
 
 // Route to delete category detail
 router.delete(
-    "/category/:categoryId",
+    "/:classId",
     authMiddleware,
     classController.remove
 );

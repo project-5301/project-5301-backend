@@ -6,8 +6,10 @@ const category = require("./categoryRoutes");
 const userRoutes = require("./usersRoutes");
 const notificationRoutes = require("./notificationRoutes");
 const classRoutes = require("./classesRoute");
+
 //const getCampaignAnalyticsRoutes = require("./campaignAnalyticsRoutes"); 
 // const authMiddleware = require("../middlewares/authMiddleware");
+const overviewController = require("../controller/overviewController");
 
 router.use("/auth", authRoutes);
 router.use("/category", category);
@@ -18,4 +20,8 @@ router.use("/notifications", notificationRoutes);
 
 router.use("/class", classRoutes);
 //router.use("/campaign-analytics", getCampaignAnalyticsRoutes);
+
+router.use("/analytics/overview", overviewController.overview);
+
+
 module.exports = router;
