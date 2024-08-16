@@ -10,37 +10,31 @@ const { sendEmail } = require("./emailService");
 
 // Register User
 const registerUser = async (req, res) => {
-  const { username, email, password, isProvider } = req.body;
+  const { userName, userEmail, password, isProvider, userProfile, phoneNumber } = req.body;
 
   try {
-
-    if (!email || email.trim() === '') { 
-      return res.status(400).json({ message: "A valid email is required" });
-  }
-
     // Check if user already exists
-    let user = await User.findOne({ email });
+    let user = await User.findOne({ userEmail });
     if (user) {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    // Default isProvider to false if not provided
-    const userIsProvider = isProvider || false;
-
     // Create new user
     user = new User({
-      username,
-      email,
+      userName,
+      userEmail,
+      userProfile,
       password: await bcrypt.hash(password, 10),
-      isProvider: userIsProvider,
+      isProvider,
+      phoneNumber, // Include phone number
     });
 
     // Generate JWT token
     const token = generateToken(user);
     await user.save();
 
-    res.status(201).json({
-      status: 201,
+    res.status(200).json({
+      status: 200,
       message: "User registered successfully",
       token,
     });
@@ -49,62 +43,15 @@ const registerUser = async (req, res) => {
     res.status(500).send("Server error");
   }
 };
-
-//Register Provider
-
-const registerProvider = async (req, res) => {
-  const { username, email, password, isProvider } = req.body;
-
-  try {
-
-    if (!email || email.trim() === '') { 
-      return res.status(400).json({ message: "A valid email is required" });
-  }
-
-    // Check if user already exists
-    let user = await User.findOne({ email });
-    if (user) {
-      return res.status(400).json({ message: "User already exists" });
-    }
-
-
-   // Default isProvider to true if not provided
-   const providerIsProvider = isProvider || true;
-
-    // Create new user
-    user = new User({
-      username,
-      email,
-      password: await bcrypt.hash(password, 10),
-      isProvider: providerIsProvider,
-    });
-
-    // Generate JWT token
-    const token = generateToken(user);
-    await user.save();
-
-    res.status(201).json({
-      status: 201,
-      message: "User registered successfully",
-      token,
-    });
-  } catch (err) {
-    logger.error(err.message);
-    res.status(500).send("Server error");
-  }
-};
-
-
-
 
 // Login User
 const loginUser = async (req, res) => {
-  const { email, password } = req.body;
+  const { userEmail, password } = req.body;
 
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ userEmail });
     if (!user) {
-      return res.status(401).json({ message: "Invalid credentials" });
+      return res.status(400).json({ message: "Invalid credentials" });
     }
 
     // Check if token is blacklisted
@@ -114,7 +61,7 @@ const loginUser = async (req, res) => {
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ message: "Invalid credentials" });
+      return res.status(400).json({ message: "Invalid credentials" });
     }
 
     const token = generateToken(user);
@@ -165,10 +112,10 @@ const logoutUser = async (req, res) => {
 
 // Forgot Password
 const forgetPassword = async (req, res) => {
-  const { email } = req.body;
+  const { userEmail } = req.body;
 
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ userEmail });
     if (!user) {
       return res.status(400).json({ message: "User does not exist" });
     }
@@ -190,8 +137,8 @@ const forgetPassword = async (req, res) => {
     });
 
     const mailOptions = {
-      to: email,
-      from: process.env.FROM_EMAIL,
+      to: userEmail,
+      from: "your_email@example.com",
       subject: "Password reset",
       text: `You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n
                    Please click on the following link, or paste this into your browser to complete the process:\n\n
@@ -360,7 +307,6 @@ const changePassword = async (req, res) => {
 
 module.exports = {
   registerUser,
-  registerProvider,
   loginUser,
   logoutUser,
   forgetPassword,

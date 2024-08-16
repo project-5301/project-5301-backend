@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middlewares/authMiddleware');
 
-const { registerUser, registerProvider, loginUser, forgetPassword, updatePassword, getUserByEmail, logoutUser, sendOTP, verifyOTP, changePassword } = require('../controller/authController');
+const { registerUser, loginUser, forgetPassword, updatePassword, getUserByEmail, logoutUser, sendOTP, verifyOTP, changePassword } = require('../controller/authController');
 
 /**
  * @swagger
@@ -45,7 +45,7 @@ const { registerUser, registerProvider, loginUser, forgetPassword, updatePasswor
  *       500:
  *         description: Server error
  */
-router.post('/user/register', registerUser);
+router.post('/register', registerUser);
 
 /**
  * @swagger
@@ -72,10 +72,6 @@ router.post('/user/register', registerUser);
  *       500:
  *         description: Server error
  */
-
-
-router.post('/provider/register', registerProvider)
-
 router.post('/login', loginUser);
 
 /**
