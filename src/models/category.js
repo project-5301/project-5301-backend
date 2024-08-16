@@ -1,24 +1,21 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const User = require("./user");
-// Define the schema for CategoryDetails
+
 const CategorySchema = new Schema(
   {
-    categoryTitle: {
+    categoryId: {
+      type: String,
+      required: true,
+      unique: true,
+    },    
+    categoryName: {
       type: String,
       required: true,
     },
     createdBy: {
       type: Schema.Types.ObjectId,
       ref: User.modelName,
-    },
-    description: {
-      type: String,
-      required: true,
-    },
-    categoryDoc: {
-      type: String,
-      required: true,
     },
   },
   {
@@ -31,3 +28,4 @@ const CategorySchema = new Schema(
 const Category = mongoose.model("categories", CategorySchema);
 
 module.exports = Category;
+
