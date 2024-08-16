@@ -5,7 +5,7 @@ const authRoutes = require("./authRoutes");
 const category = require("./categoryRoutes");
 const userRoutes = require("./usersRoutes");
 const notificationRoutes = require("./notificationRoutes");
-
+const classRoutes = require("./classesRoute");
 //const getCampaignAnalyticsRoutes = require("./campaignAnalyticsRoutes"); 
 // const authMiddleware = require("../middlewares/authMiddleware");
 
@@ -15,5 +15,7 @@ router.use("/category", category);
 //router.use("/campaigns", camapignRoutes);
 router.use("/user", userRoutes);
 router.use("/notifications", notificationRoutes);
+
+router.use("/class", classRoutes);
 //router.use("/campaign-analytics", getCampaignAnalyticsRoutes);
 module.exports = router;
