@@ -5,19 +5,19 @@ const User = require("../models/user");
 exports.addCategoryDetail = async (req, res) => {
   try {
     const { categoryId, categoryName } = req.body;
-    const userId = 1; 
-    // const user = await User.findById(userId);
+    const userId = req.user.id;
+    const user = await User.findById(userId);
     if (!categoryId || !categoryName) {
       return res.status(400).json({ message: 'All fields are required' });
     }    
-    // if (!user) {
-    //   return res.status(404).json({ message: "User not found" });
-    // }
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
     const categoryDetail = new CategoryDetails({
       categoryName,
       categoryId,
       createdBy: "userId",
-    });
+    });q
     console.log(categoryDetail);
     await categoryDetail.save();
 
@@ -88,7 +88,7 @@ exports.updateCategoryDetail = async (req, res) => {
   }
 };
 
-// Delete category detail
+// Delete category detailq
 exports.deleteCategoryDetail = async (req, res) => {
   try {
     const { id } = req.params;
