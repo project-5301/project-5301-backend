@@ -4,24 +4,25 @@ const User = require("../models/user");
 // Add new category detail
 exports.addCategoryDetail = async (req, res) => {
   try {
-    const { categoryTitle, description, categoryDoc } = req.body;
+    const { categoryId, categoryName } = req.body;
     const userId = req.user.id;
     const user = await User.findById(userId);
+    if (!categoryId || !categoryName) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }    
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
     const categoryDetail = new CategoryDetails({
-      categoryTitle,
-      description,
-      categoryDoc,
+      categoryName,
+      categoryId,
       createdBy: userId,
     });
-
+    console.log(categoryDetail);
     await categoryDetail.save();
 
     res.status(201).json({
       status: "success",
-      message: "Category detail added successfully",
       data: categoryDetail,
     });
   } catch (error) {
@@ -35,20 +36,14 @@ exports.addCategoryDetail = async (req, res) => {
 // Update category detail
 exports.updateCategoryDetail = async (req, res) => {
   try {
-    const { id } = req.params;
-    const {
-      categoryTitle,
-      description,
-      categoryCategory,
-      categoryDoc
-    } = req.body;
-
+    const { categoryID } = req.params;
+    const { categoryId, categoryName } = req.body;
     const userId = req.user.id;
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    const foundCategoryDetails = await CategoryDetails.findById(id);
+    const foundCategoryDetails = await CategoryDetails.findById(categoryID);
     if (!foundCategoryDetails) {
       return res.status(404).json({
         status: "error",
@@ -63,19 +58,16 @@ exports.updateCategoryDetail = async (req, res) => {
     }
 
     const categoryDetail = await CategoryDetails.findByIdAndUpdate(
-      id,
+      categoryID,
       {
-        categoryTitle,
-        description,
-        categoryCategory,
-        categoryDoc
+        categoryId,
+        categoryName
       },
       { new: true, runValidators: true }
     );
 
     res.status(200).json({
       status: "success",
-      message: "Category detail updated successfully",
       data: categoryDetail,
     });
   } catch (error) {
@@ -87,10 +79,10 @@ exports.updateCategoryDetail = async (req, res) => {
   }
 };
 
-// Delete category detail
+// Delete category detailq
 exports.deleteCategoryDetail = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { categoryID } = req.params;
 
     const userId = req.user.id;
     const user = await User.findById(userId);
@@ -99,7 +91,7 @@ exports.deleteCategoryDetail = async (req, res) => {
     }
 
     // Find category detail by ID
-    const categoryDetail = await CategoryDetails.findById(id);
+    const categoryDetail = await CategoryDetails.findById(categoryID);
     if (!categoryDetail) {
       return res.status(404).json({
         status: "error",
@@ -116,7 +108,7 @@ exports.deleteCategoryDetail = async (req, res) => {
     }
 
     // Delete category detail
-    await CategoryDetails.findByIdAndDelete(id);
+    await CategoryDetails.findByIdAndDelete(categoryID);
 
     // Respond with success
     res.status(200).json({
@@ -175,8 +167,7 @@ exports.getAllCategoryDetails = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
     // Find all category details
-    const categoryDetails = await CategoryDetails.find();
-
+    const categoryDetails = await CategoryDetails.find({ createdBy: userId });    
     // Respond with success
     res.status(200).json({
       status: "success",
