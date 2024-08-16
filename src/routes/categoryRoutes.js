@@ -7,15 +7,15 @@ const authMiddleware = require("../middlewares/authMiddleware");
 router.post("/category", categoryController.addCategoryDetail);
 
 // Route to update category detail
-router.patch(
-  "/category/:categoryID",
+router.put(
+  "/update/:id",
   authMiddleware,
   categoryController.updateCategoryDetail
 );
 
 // Route to delete category detail
 router.delete(
-  "/category/:categoryId",
+  "/delete/:id",
   authMiddleware,
   categoryController.deleteCategoryDetail
 );
@@ -28,6 +28,6 @@ router.get(
 );
 
 // Route to get all category details
-router.get("/category", authMiddleware, categoryController.getAllCategoryDetails);
+router.get("/all", authMiddleware, categoryController.getAllCategoryDetails);
 
 module.exports = router;
