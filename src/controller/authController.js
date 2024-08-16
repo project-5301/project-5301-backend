@@ -12,6 +12,7 @@ const { sendEmail } = require("./emailService");
 const registerUser = async (req, res) => {
   const { userName, userEmail, password, isProvider, userProfile, phoneNumber } = req.body;
 
+  
   try {
     // Check if user already exists
     let user = await User.findOne({ userEmail });

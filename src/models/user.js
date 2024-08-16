@@ -17,6 +17,7 @@ UserSchema.methods.isTokenBlacklisted = function (token) {
   return this.blacklistedTokens.includes(token);
 };
 
+
 // Method to add a token to the blacklist
 UserSchema.methods.blacklistToken = function (token) {
   if (!this.blacklistedTokens.includes(token)) {

@@ -4,6 +4,7 @@ const authMiddleware = require('../middlewares/authMiddleware');
 
 const { registerUser, loginUser, forgetPassword, updatePassword, getUserByEmail, logoutUser, sendOTP, verifyOTP, changePassword } = require('../controller/authController');
 
+
 /**
  * @swagger
  * components:
