@@ -1,14 +1,14 @@
 const mongoose = require("mongoose");
 
 const UserSchema = new mongoose.Schema({
-  userName: { type: String, required: true },
-  userEmail: { type: String, required: true, unique: true },
+  username: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   isProvider: { type: Boolean, default: false },
-  userProfile: { type: String },
+  //userProfile: { type: String },
   resetPasswordToken: { type: String },
   resetPasswordExpire: { type: Date },
-  phoneNumber: { type: String, required: true }, // Phone number field
+  //phoneNumber: { type: String, required: true }, // Phone number field
   blacklistedTokens: [{ type: String }], // Field to store blacklisted tokens
 }, { timestamps: true });
 
