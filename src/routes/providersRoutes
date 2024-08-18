@@ -1,0 +1,13 @@
+const express = require("express");
+const router = express.Router();
+const providersController = require("../controller/providersController");
+const authMiddleware = require("../middlewares/authMiddleware");
+
+router.delete('/:providerId',authMiddleware ,providersController.deleteProvider);
+router.post('/createProvider',authMiddleware ,providersController.createProvider);
+router.get('/getAllproviders',authMiddleware ,providersController.getAllProviders);
+router.patch('/:providerId',  authMiddleware,providersController.updateProvider);
+
+
+
+module.exports = router;
