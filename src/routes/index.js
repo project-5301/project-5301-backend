@@ -7,6 +7,8 @@ const userRoutes = require("./usersRoutes");
 const notificationRoutes = require("./notificationRoutes");
 const classRoutes = require("./classesRoute");
 
+const providersRoutes = require("./providersRoutes");
+
 //const getCampaignAnalyticsRoutes = require("./campaignAnalyticsRoutes"); 
 // const authMiddleware = require("../middlewares/authMiddleware");
 const overviewController = require("../controller/overviewController");
@@ -18,6 +20,7 @@ router.use("/category", category);
 router.use("/user", userRoutes);
 router.use("/notifications", notificationRoutes);
 
+router.use("/providers", providersRoutes);
 router.use("/class", classRoutes);
 //router.use("/campaign-analytics", getCampaignAnalyticsRoutes);
 
