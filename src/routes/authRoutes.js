@@ -45,7 +45,7 @@ const { registerUser, registerProvider, loginUser, forgetPassword, updatePasswor
  *       500:
  *         description: Server error
  */
-router.post('/user/register', registerUser);
+router.post('/register', registerUser);
 
 /**
  * @swagger
