@@ -18,7 +18,7 @@ const create = async (req, res) => {
     return res.status(201).json(newClass);
   } catch (error) {
     logger.error("Error during class creation:", error);
-    return res.status(500).json({ message: "Internal Server Error" });
+    return res.status(500).json({status:500, message: "Internal Server Error" });
   }
 };
 
@@ -30,9 +30,9 @@ const fetch = async (req, res) => {
     let result;
     if (id) {
       // Fetch a specific class by ID
-      result = await Classes.findById(id);
+      result = await Classes.findById(id).sort({ createdAt: 1 });
       if (!result) {
-        return res.status(404).json({ message: "Class not found" });
+        return res.status(404).json({ status:404, message: "Class not found" });
       }
     } else {
       // Fetch all classes
@@ -42,50 +42,51 @@ const fetch = async (req, res) => {
     return res.status(200).json(result);
   } catch (error) {
     logger.error("Error during class fetch:", error);
-    return res.status(500).json({ message: "Internal Server Error" });
+    return res.status(500).json({status:500, message: "Internal Server Error" });
   }
 };
 
 // Update a class by ID
 const update = async (req, res) => {
   try {
-    const { id } = req.params;
+    // const { id } = req.params;
+    const {classId} = req.params;
     const { name, price, optionsAvailable } = req.body;
 
     // Find the class by ID and update it
     const updatedClass = await Classes.findByIdAndUpdate(
-      id,
+      classId,
       { name, price, optionsAvailable },
       { new: true, runValidators: true }
     );
 
     if (!updatedClass) {
-      return res.status(404).json({ message: "Class not found" });
+      return res.status(404).json({status:404, message: "Class not found" });
     }
 
     return res.status(200).json(updatedClass);
   } catch (error) {
     logger.error("Error during class update:", error);
-    return res.status(500).json({ message: "Internal Server Error" });
+    return res.status(500).json({status:500, message: "Internal Server Error" });
   }
 };
 
 // Delete a class by ID
 const remove = async (req, res) => {
   try {
-    const { id } = req.params;
-
+    // const { id } = req.params;
+    const{classId} = req.params;
     // Find the class by ID and delete it
-    const deletedClass = await Classes.findByIdAndDelete(id);
+    const deletedClass = await Classes.findByIdAndDelete(classId);
 
     if (!deletedClass) {
-      return res.status(404).json({ message: "Class not found" });
+      return res.status(404).json({status:404, message: "Class not found" });
     }
 
-    return res.status(200).json({ message: "Class deleted successfully" });
+    return res.status(200).json({status:200, message: "Class deleted successfully" });
   } catch (error) {
     logger.error("Error during class deletion:", error);
-    return res.status(500).json({ message: "Internal Server Error" });
+    return res.status(500).json({status:500, message: "Internal Server Error" });
   }
 };
 

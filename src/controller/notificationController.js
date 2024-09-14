@@ -11,7 +11,7 @@ const createNotification = async (req, res) => {
     if (!user) {
       return res
         .status(404)
-        .json({ message: "User not authorized to create notifications" });
+        .json({status:404, message: "User not authorized to create notifications" });
     }
 
     const notification = new Notification({ type, title, message });
@@ -28,13 +28,14 @@ const createNotification = async (req, res) => {
     await Promise.all(recipientsPromises);
 
     res.status(201).json({
+      status:201,
       message: "Notification created successfully",
       notificationId: notification._id,
       recipients,
     });
   } catch (err) {
     res.status(500).json({
-      status: "error",
+      status: 500,
       message: err.message,
     });
   }
@@ -49,7 +50,7 @@ const getNotificationsForUser = async (req, res) => {
     if (userId !== authUserId) {
       return res
         .status(403)
-        .json({ message: "User not authorized to access these notifications" });
+        .json({status:403, message: "User not authorized to access these notifications" });
     }
 
     // Query the notifications for the user, sorting by creation date (latest first)
@@ -81,13 +82,13 @@ const getNotificationsForUser = async (req, res) => {
 
     // Respond with the notifications array
     res.status(200).json({
-      status: "success",
+      status: "200",
       data: notificationData,
     });
   } catch (err) {
     // Handle any errors during the process
     res.status(500).json({
-      status: "error",
+      status: 500,
       message: err.message,
       data: [],
     });
@@ -103,7 +104,7 @@ const updateNotificationStatus = async (req, res) => {
     if (userId !== authUserId) {
       return res
         .status(403)
-        .json({ message: "User not authorized to update this notification" });
+        .json({status:403, message: "User not authorized to update this notification" });
     }
 
     const update = { status };
@@ -118,11 +119,12 @@ const updateNotificationStatus = async (req, res) => {
     );
 
     res.status(200).json({
+      status:200,
       message: "Notification status updated successfully",
     });
   } catch (err) {
     res.status(500).json({
-      status: "error",
+      status: 500,
       message: err.message,
     });
   }

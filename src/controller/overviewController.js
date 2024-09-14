@@ -19,7 +19,7 @@ const overview = async (req, res) => {
     return res.status(200).json(response);
   } catch (error) {
     logger.error("Error during class overview calculation:", error);
-    return res.status(500).json({ message: "Internal Server Error" });
+    return res.status(500).json({ status:500,message: "Internal Server Error" });
   }
 };
 

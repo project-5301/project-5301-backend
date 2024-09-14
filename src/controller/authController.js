@@ -11,13 +11,10 @@ const { sendEmail } = require("./emailService");
 // Register User
 const registerUser = async (req, res) => {
   const { username, email, password, isProvider } = req.body;
-
   try {
-
     if (!email || email.trim() === '') { 
       return res.status(400).json({ message: "A valid email is required" });
   }
-
     // Check if user already exists
     let user = await User.findOne({ email });
     if (user) {
@@ -46,7 +43,7 @@ const registerUser = async (req, res) => {
     });
   } catch (err) {
     logger.error(err.message);
-    res.status(500).send("Server error");
+    res.status(500).json({status:500, message: 'Server error' });
   }
 };
 
@@ -90,7 +87,7 @@ const registerProvider = async (req, res) => {
     });
   } catch (err) {
     logger.error(err.message);
-    res.status(500).send("Server error");
+    res.status(500).json({status:500, message: 'Server error' });
   }
 };
 
@@ -104,17 +101,17 @@ const loginUser = async (req, res) => {
   try {
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(401).json({ message: "Invalid credentials" });
+      return res.status(401).json({status:401, message: "Invalid credentials" });
     }
 
     // Check if token is blacklisted
     if (user.blacklistedTokens.includes(req.header("Authorization")?.replace("Bearer ", ""))) {
-      return res.status(403).json({ message: "Token is blacklisted, please log in again" });
+      return res.status(403).json({token:403, message: "Token is blacklisted, please log in again" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ message: "Invalid credentials" });
+      return res.status(401).json({token:401, message: "Invalid credentials" });
     }
 
     const token = generateToken(user);
@@ -126,7 +123,7 @@ const loginUser = async (req, res) => {
     });
   } catch (err) {
     logger.error("Error during user login:", err);
-    res.status(500).send("Server error");
+    res.status(500).json({status:500, message: 'Server error' });
   }
 };
 
@@ -136,7 +133,7 @@ const logoutUser = async (req, res) => {
 
   try {
     if (!token) {
-      return res.status(401).json({ message: "No token provided" });
+      return res.status(401).json({token:401, message: "No token provided" });
     }
 
     // Verify the token and decode user ID
@@ -146,7 +143,7 @@ const logoutUser = async (req, res) => {
     // Find the user by ID
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({status:404, message: "User not found" });
     }
 
     // Add the token to the blacklist
@@ -159,7 +156,7 @@ const logoutUser = async (req, res) => {
     });
   } catch (err) {
     logger.error("Error during user logout:", err);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({token:500, message: "Server error" });
   }
 };
 
@@ -170,7 +167,7 @@ const forgetPassword = async (req, res) => {
   try {
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({ message: "User does not exist" });
+      return res.status(400).json({token:400, message: "User does not exist" });
     }
 
     const resetToken = crypto.randomBytes(20).toString("hex");
@@ -206,7 +203,7 @@ const forgetPassword = async (req, res) => {
       message: "Password reset email sent successfully",
     });
   } catch (err) {
-    res.status(500).send("Server error");
+    res.status(500).json({status:500, message: 'Server error' });
   }
 };
 
@@ -227,13 +224,13 @@ const updatePassword = async (req, res) => {
     // Find the user by ID
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({status:404, message: "User not found" });
     }
 
     // Verify old password
     const isMatch = await bcrypt.compare(oldPassword, user.password);
     if (!isMatch) {
-      return res.status(400).json({ message: "Old password is incorrect" });
+      return res.status(400).json({status:400, message: "Old password is incorrect" });
     }
 
     // Update phone number
@@ -249,7 +246,7 @@ const updatePassword = async (req, res) => {
     });
   } catch (err) {
     logger.error("Error updating password:", err.message);
-    res.status(500).send("Server error");
+    res.status(500).json({status:500, message: 'Server error' });//json({status:404, message: "User not found" });
   }
 };
 
@@ -259,7 +256,7 @@ const getUserByEmail = async (req, res) => {
     const { userEmail } = req.body;
     const user = await User.findOne({ userEmail: userEmail });
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({status:404, message: "User not found" });
     }
 
     // Exclude the password from the response
@@ -270,7 +267,7 @@ const getUserByEmail = async (req, res) => {
       userDetails: [userDetails],
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({status:500, message: error.message });
   }
 };
 
@@ -280,7 +277,7 @@ const sendOTP = async (req, res) => {
   try {
     const user = await User.findOne({ userEmail });
     if (!user) {
-      return res.status(400).json({ message: 'User does not exist' });
+      return res.status(400).json({status:400, message: 'User does not exist' });
     }
 
     // Generate OTP
@@ -311,10 +308,10 @@ const sendOTP = async (req, res) => {
 
     // Send the OTP via email
     await sendEmail(userEmail, subject, text, html);
-    res.status(200).json({ message: 'OTP sent to email successfully' });
+    res.status(200).json({status:200, message: 'OTP sent to email successfully' });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({status:500, message: 'Server error' });
   }
 };
 
@@ -327,10 +324,10 @@ const verifyOTP = async (req, res) => {
     if (!user || user.resetPasswordExpire < Date.now()) {
       return res.status(400).json({ message: 'Invalid or expired OTP' });
     }
-    res.status(200).json({ message: 'OTP verified successfully' });
+    res.status(200).json({status:200, message: 'OTP verified successfully' });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({status:500, message: 'Server error' });
   }
 };
 
@@ -341,7 +338,7 @@ const changePassword = async (req, res) => {
     // Check if the vendor exists and if the OTP is valid
     const user = await User.findOne({ userEmail, resetPasswordToken: otp });
     if (!user || user.resetPasswordExpire < Date.now()) {
-      return res.status(400).json({ message: 'Invalid or expired OTP' });
+      return res.status(400).json({status:400, message: 'Invalid or expired OTP' });
     }
 
     user.password = await bcrypt.hash(newPassword, 10);
@@ -351,10 +348,10 @@ const changePassword = async (req, res) => {
 
     await user.save();
 
-    res.status(200).json({ message: 'Password changed successfully' });
+    res.status(200).json({status:200, message: 'Password changed successfully' });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({status:500, message: 'Server error' });
   };
 };
 
