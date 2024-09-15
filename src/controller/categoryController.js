@@ -8,10 +8,10 @@ exports.addCategoryDetail = async (req, res) => {
     const userId = req.user.id;
     const user = await User.findById(userId);
     if (!categoryId || !categoryName) {
-      return res.status(400).json({ message: 'All fields are required' });
+      return res.status(400).json({ status: 400, message: 'All fields are required', data: null });
     }    
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ status: 404, message: "User not found", data: null });
     }
     const categoryDetail = new CategoryDetails({
       categoryName,
@@ -22,13 +22,15 @@ exports.addCategoryDetail = async (req, res) => {
     await categoryDetail.save();
 
     res.status(201).json({
-      status: "success",
+      status: 201,
+      message: "Category detail added successfully",
       data: categoryDetail,
     });
   } catch (error) {
     res.status(400).json({
-      status: "error",
+      status: 400,
       message: error.message,
+      data: null,
     });
   }
 };
@@ -41,20 +43,23 @@ exports.updateCategoryDetail = async (req, res) => {
     const userId = req.user.id;
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ status: 404, message: "User not found", data: null });
     }
     const foundCategoryDetails = await CategoryDetails.findById(categoryID);
     if (!foundCategoryDetails) {
       return res.status(404).json({
-        status: "error",
+        status: 404,
         message: "Category detail not found",
+        data: null,
       });
     }
 
     if(foundCategoryDetails.createdBy.toString() !== userId){
       return res.status(400).json({
-        message: "You don't have access to update this category, as you are not the owner of this category."
-      })
+        status: 403,
+        message: "You are not authorized to update this category",
+        data: null,    
+        })
     }
 
     const categoryDetail = await CategoryDetails.findByIdAndUpdate(
@@ -67,14 +72,16 @@ exports.updateCategoryDetail = async (req, res) => {
     );
 
     res.status(200).json({
-      status: "success",
+      status: 200,
+      message: "Category detail updated successfully",
       data: categoryDetail,
     });
   } catch (error) {
     // Respond with error
     res.status(400).json({
-      status: "error",
+      status: 400,
       message: error.message,
+      data: null,
     });
   }
 };
@@ -87,7 +94,11 @@ exports.deleteCategoryDetail = async (req, res) => {
     const userId = req.user.id;
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({
+        status: 404,
+        message: "Category detail not found",
+        data: null, 
+      });
     }
 
     // Find category detail by ID
@@ -102,8 +113,9 @@ exports.deleteCategoryDetail = async (req, res) => {
     // Check if the user who is trying to delete is the same user who created this category
     if (categoryDetail.createdBy.toString() !== userId) {
       return res.status(403).json({
-        status: "error",
-        message: "User not authorized to delete this category details",
+        status: 403,
+        message: "You are not authorized to delete this category detail",
+        data: null,
       });
     }
 
@@ -112,14 +124,16 @@ exports.deleteCategoryDetail = async (req, res) => {
 
     // Respond with success
     res.status(200).json({
-      status: "success",
+      status: 200,
       message: "Category detail deleted successfully",
+      data: null,
     });
   } catch (error) {
     // Respond with error
     res.status(400).json({
-      status: "error",
+      status: 400,
       message: error.message,
+      data: null,
     });
   }
 };
@@ -132,28 +146,31 @@ exports.getCategoryDetailById = async (req, res) => {
     const userId = req.user.id;
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ status: 404, message: "User not found", data: null });
     }
     // Find category detail by ID
     const categoryDetail = await CategoryDetails.findById(id);
 
     if (!categoryDetail) {
       return res.status(404).json({
-        status: "error",
+        status: 404,
         message: "Category detail not found",
+        data: null,
       });
     }
 
     // Respond with success
     res.status(200).json({
-      status: "success",
+      status: 200,
+      message: "Category detail retrieved successfully",
       data: categoryDetail,
     });
   } catch (error) {
     // Respond with error
     res.status(400).json({
-      status: "error",
+      status: 400,
       message: error.message,
+      data: null,
     });
   }
 };
@@ -170,14 +187,16 @@ exports.getAllCategoryDetails = async (req, res) => {
     const categoryDetails = await CategoryDetails.find({ createdBy: userId });    
     // Respond with success
     res.status(200).json({
-      status: "success",
+      status: 200,
+      message: "All category details retrieved successfully",
       data: categoryDetails,
     });
   } catch (error) {
     // Respond with error
     res.status(400).json({
-      status: "error",
+      status: 400,
       message: error.message,
+      data: null,
     });
   }
 };
