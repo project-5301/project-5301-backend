@@ -4,10 +4,10 @@ const User = require("../models/user");
 // Add new category detail
 exports.addCategoryDetail = async (req, res) => {
   try {
-    const { categoryId, categoryName } = req.body;
+    const { categoryName } = req.body;
     const userId = req.user.id;
     const user = await User.findById(userId);
-    if (!categoryId || !categoryName) {
+    if (!categoryName) {
       return res.status(400).json({ message: 'All fields are required' });
     }    
     if (!user) {
@@ -15,14 +15,12 @@ exports.addCategoryDetail = async (req, res) => {
     }
     const categoryDetail = new CategoryDetails({
       categoryName,
-      categoryId,
       createdBy: userId,
     });
-    console.log(categoryDetail);
     await categoryDetail.save();
 
     res.status(201).json({
-      status: "success",
+      message: "Data added successfully",
       data: categoryDetail,
     });
   } catch (error) {
@@ -37,7 +35,7 @@ exports.addCategoryDetail = async (req, res) => {
 exports.updateCategoryDetail = async (req, res) => {
   try {
     const { categoryID } = req.params;
-    const { categoryId, categoryName } = req.body;
+    const { categoryName } = req.body;
     const userId = req.user.id;
     const user = await User.findById(userId);
     if (!user) {
@@ -56,18 +54,16 @@ exports.updateCategoryDetail = async (req, res) => {
         message: "You don't have access to update this category, as you are not the owner of this category."
       })
     }
-
     const categoryDetail = await CategoryDetails.findByIdAndUpdate(
       categoryID,
       {
-        categoryId,
         categoryName
       },
       { new: true, runValidators: true }
     );
 
     res.status(200).json({
-      status: "success",
+      message: "Updated successfully",
       data: categoryDetail,
     });
   } catch (error) {
@@ -146,7 +142,7 @@ exports.getCategoryDetailById = async (req, res) => {
 
     // Respond with success
     res.status(200).json({
-      status: "success",
+      message: "Data fetched",
       data: categoryDetail,
     });
   } catch (error) {
@@ -167,10 +163,10 @@ exports.getAllCategoryDetails = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
     // Find all category details
-    const categoryDetails = await CategoryDetails.find({ createdBy: userId });    
+    const categoryDetails = await CategoryDetails.find({ createdBy: userId }).sort({createdAt: -1});
     // Respond with success
     res.status(200).json({
-      status: "success",
+      message: "Data fetched",
       data: categoryDetails,
     });
   } catch (error) {

@@ -4,11 +4,11 @@ const User = require("./user");
 
 const CategorySchema = new Schema(
   {
-    categoryId: {
-      type: String,
-      required: true,
-      unique: true,
-    },    
+    // categoryId: {
+    //   type: String,
+    //   required: true,
+    //   unique: true,
+    // },    
     categoryName: {
       type: String,
       required: true,

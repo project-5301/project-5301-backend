@@ -15,7 +15,7 @@ const create = async (req, res) => {
     // Save the new class to the database
     await newClass.save();
 
-    return res.status(201).json(newClass);
+    return res.status(201).json({ message: "Class added successfully", data: newClass });
   } catch (error) {
     logger.error("Error during class creation:", error);
     return res.status(500).json({ message: "Internal Server Error" });
@@ -39,7 +39,7 @@ const fetch = async (req, res) => {
       result = await Classes.find();
     }
 
-    return res.status(200).json(result);
+    return res.status(200).json({ data: result, message: "Data fetched successfully" });
   } catch (error) {
     logger.error("Error during class fetch:", error);
     return res.status(500).json({ message: "Internal Server Error" });
@@ -63,7 +63,7 @@ const update = async (req, res) => {
       return res.status(404).json({ message: "Class not found" });
     }
 
-    return res.status(200).json(updatedClass);
+    return res.status(200).json({ message: "Updated successfully", data: updatedClass });
   } catch (error) {
     logger.error("Error during class update:", error);
     return res.status(500).json({ message: "Internal Server Error" });
@@ -89,9 +89,18 @@ const remove = async (req, res) => {
   }
 };
 
+const allClasses = async (req,res) => {
+  try {
+    const data = await Classes.find().sort({createdAt: -1});
+    return res.status(200).json({message: "Records fetched", data: data});
+  } catch (error) {
+    return res.status(500).json({message: "Internal Server Error"});
+  }
+}
 module.exports = {
   create,
   fetch,
   update,
   remove,
+  allClasses
 };
