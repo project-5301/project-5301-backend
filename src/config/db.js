@@ -10,7 +10,7 @@ const connectDB = async () => {
             serverApi: {
                 version: ServerApiVersion.v1,
                 strict: true,
-                deprecationErrors: true,
+                deprecationErrors: true, 
               }
         });
         console.log('MongoDB connected');

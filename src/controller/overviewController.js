@@ -16,11 +16,18 @@ const overview = async (req, res) => {
     };
 
     // Send the response
-    return res.status(200).json({ message: "Data fetched", data: response });
+    return res.status(200).json({
+      status: 200,
+      message: "Class overview retrieved successfully",
+      data,
+    });
   } catch (error) {
     logger.error("Error during class overview calculation:", error);
-    return res.status(500).json({ message: "Internal Server Error" });
-  }
+    return res.status(500).json({
+      status: 500,
+      message: "An unexpected error occurred while retrieving class overview",
+      data: null,
+    });  }
 };
 
 module.exports = {

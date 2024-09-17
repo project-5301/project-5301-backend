@@ -11,7 +11,7 @@ const createNotification = async (req, res) => {
     if (!user) {
       return res
         .status(404)
-        .json({ message: "User not authorized to create notifications" });
+        .json({ status: 404, message: "User not authorized to create notifications", data: null });
     }
 
     const notification = new Notification({ type, title, message });
@@ -28,14 +28,18 @@ const createNotification = async (req, res) => {
     await Promise.all(recipientsPromises);
 
     res.status(201).json({
+      status:201,
       message: "Notification created successfully",
+     data:{
       notificationId: notification._id,
       recipients,
+     }
     });
   } catch (err) {
     res.status(500).json({
-      status: "error",
+      status: 500,
       message: err.message,
+      data:null
     });
   }
 };
@@ -49,7 +53,7 @@ const getNotificationsForUser = async (req, res) => {
     if (userId !== authUserId) {
       return res
         .status(403)
-        .json({ message: "User not authorized to access these notifications" });
+        .json({status:403, message: "User not authorized to access these notifications",data:null });
     }
 
     // Query the notifications for the user, sorting by creation date (latest first)
@@ -81,14 +85,15 @@ const getNotificationsForUser = async (req, res) => {
 
     // Respond with the notifications array
     res.status(200).json({
-      status: "success",
+      status: "200",
+      message: "Notifications retrieved successfully",
       data: notificationData,
     });
   } catch (err) {
     // Handle any errors during the process
     res.status(500).json({
-      status: "error",
-      message: err.message,
+      status: 500,
+      message: "An unexpected error occurred while retrieving notifications",
       data: [],
     });
   }
@@ -102,8 +107,8 @@ const updateNotificationStatus = async (req, res) => {
     const authUserId = req.user.id;
     if (userId !== authUserId) {
       return res
-        .status(403)
-        .json({ message: "User not authorized to update this notification" });
+      .status(403)
+      .json({ status: 403, message: "User not authorized to update this notification", data: null });
     }
 
     const update = { status };
@@ -118,12 +123,15 @@ const updateNotificationStatus = async (req, res) => {
     );
 
     res.status(200).json({
+      status: 200,
       message: "Notification status updated successfully",
+      data: null,
     });
   } catch (err) {
     res.status(500).json({
-      status: "error",
-      message: err.message,
+      status: 500,
+      message: "An unexpected error occurred while updating the notification status",
+      data: null,
     });
   }
 };
