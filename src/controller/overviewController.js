@@ -16,7 +16,7 @@ const overview = async (req, res) => {
     };
 
     // Send the response
-    return res.status(200).json(response);
+    return res.status(200).json({ message: "Data fetched", data: response });
   } catch (error) {
     logger.error("Error during class overview calculation:", error);
     return res.status(500).json({ message: "Internal Server Error" });

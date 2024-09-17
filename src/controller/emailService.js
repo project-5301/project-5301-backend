@@ -11,12 +11,11 @@ const logger = winston.createLogger({
   });
 
 
-const sendEmail = async (email, subject, text, html) => {
+const sendEmail = async (email, subject, html) => {
     const msg = {
         to: email,
         from: 'praduman1414@gmail.com', // Make sure this is your verified sender email
         subject: subject,
-        text: text,
         html: html,
     };
     try {
