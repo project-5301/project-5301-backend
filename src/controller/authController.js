@@ -3,7 +3,6 @@ const bcrypt = require("bcryptjs");
 const { generateToken } = require("../utils/jwt");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
-const nodemailer = require("nodemailer");
 require("dotenv").config();
 const logger = require("../utils/logger");
 const { sendEmail } = require("./emailService");
@@ -186,26 +185,13 @@ const forgetPassword = async (req, res) => {
     user.resetPasswordExpire = resetPasswordExpire;
     await user.save();
 
-    const transporter = nodemailer.createTransport({
-      host: "smtp.ethereal.email",
-      port: 587,
-      auth: {
-        user: "your_email@example.com",
-        pass: "your_password",
-      },
-    });
-
-    const mailOptions = {
-      to: email,
-      from: process.env.FROM_EMAIL,
-      subject: "Password reset",
-      text: `You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n
+    const subject = "Password reset";
+    const text = `You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n
                    Please click on the following link, or paste this into your browser to complete the process:\n\n
                    http://${req.headers.host}/reset/${resetToken}\n\n
-                   If you did not request this, please ignore this email and your password will remain unchanged.\n`,
-    };
+                   If you did not request this, please ignore this email and your password will remain unchanged.\n`;
 
-    transporter.sendMail(mailOptions);
+    await sendEmail(email, subject,text);
 
     res.status(200).json({
       status: 200,
@@ -287,7 +273,7 @@ const sendOTP = async (req, res) => {
   const { userEmail } = req.body;
 
   try {
-    const user = await User.findOne({ userEmail });
+    const user = await User.findOne({ email: userEmail });
     if (!user) {
       return res.status(400).json({status:400, message: 'User does not exist' });
     }
@@ -301,12 +287,12 @@ const sendOTP = async (req, res) => {
 
     // Email subject and content
     const subject = "Your OTP for Password Reset";
-    const text = `Dear ${user.userName},\n\nYou requested to reset your password. Use the OTP below to reset your password. The OTP will expire in 10 minutes.\n\nOTP: ${otp}\n\nBest Regards,\nThe Team`;
+    const text = `Dear ${user.username},\n\nYou requested to reset your password. Use the OTP below to reset your password. The OTP will expire in 10 minutes.\n\nOTP: ${otp}\n\nBest Regards,\nThe Team`;
 
     const html = `
       <div style="font-family: Arial, sans-serif; line-height: 1.6;">
         <h2 style="color: #333;">Password Reset OTP</h2>
-        <p>Dear ${user.userName},</p>
+        <p>Dear ${user.username},</p>
         <p>You requested to reset your password. Use the OTP below to reset your password. The OTP will expire in 10 minutes.</p>
         <p style="font-size: 1.2em; font-weight: bold; color: #444;">OTP: <span style="color: #d9534f;">${otp}</span></p>
         <p>If you did not request a password reset, please ignore this email or contact support if you have any concerns.</p>
@@ -319,8 +305,9 @@ const sendOTP = async (req, res) => {
     `;
 
     // Send the OTP via email
-    await sendEmail(userEmail, subject, text, html);
-    res.status(200).json({status:200, message: 'OTP sent to email successfully' });
+
+    await sendEmail(userEmail, subject, html);
+    res.status(200).json({ message: 'OTP sent to email successfully' });
   } catch (err) {
     console.error(err);
     res.status(500).json({status:500, message: 'Server error' });

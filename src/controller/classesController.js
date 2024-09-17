@@ -20,6 +20,7 @@ const create = async (req, res) => {
       message: "Class created successfully",
       data: newClass,
     });
+
   } catch (error) {
     logger.error("Error during class creation:", error);
     return res.status(500).json({
@@ -128,9 +129,18 @@ const remove = async (req, res) => {
   }
 };
 
+const allClasses = async (req,res) => {
+  try {
+    const data = await Classes.find().sort({createdAt: -1});
+    return res.status(200).json({message: "Records fetched", data: data});
+  } catch (error) {
+    return res.status(500).json({message: "Internal Server Error"});
+  }
+}
 module.exports = {
   create,
   fetch,
   update,
   remove,
+  allClasses
 };

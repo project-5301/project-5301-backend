@@ -25,7 +25,8 @@ const onboard = async (req, res) => {
 
     // Create UserDetails linked to the existing User
     const userDetails = new UserDetails({
-      userName: userName || user.userName, 
+
+      username: user.username,
       dob: parsedDob,
       gender,
       profilePicture,

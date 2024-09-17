@@ -4,6 +4,7 @@ const User = require("../models/user");
 const Provider = require("../models/provider");
 
 const createProvider = async (req, res) => {
+
     try {
       const { 
         providerName, 
@@ -150,13 +151,11 @@ const createProvider = async (req, res) => {
     } catch (error) {
       logger.error("Error during provider deletion:", error);
       res.status(500).json({ status: 500, message: "Failed to delete provider.", data: null });
-    }
-  }; 
-  
-  
-  module.exports = {
-    createProvider,
-    getAllProviders,
-    updateProvider,
-    deleteProvider
-  };
+
+
+module.exports = {
+  createProvider,
+  getAllProviders,
+  updateProvider,
+  deleteProvider
+};
