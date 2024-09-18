@@ -1,13 +1,14 @@
 const UserDetails = require("../models/userDetail");
 const User = require("../models/user");
 const logger = require("../utils/logger");
+const { uploadSingleImageToCloudflare } = require("../utils/upload");
 
 // Regular expression for phone number validation
 const phoneNumberRegex = /^\+?[1-9]\d{1,14}$/; // E.164 format
 
 const onboard = async (req, res) => {
-  const { dob, gender, profilePicture, phoneNumber,userName } = req.body; // Include phoneNumber
-
+  const { dob, gender, phoneNumber} = req.body; // Include phoneNumber
+  const file = req.file;
   // Validate phone number
   if (!phoneNumberRegex.test(phoneNumber)) {
     return res.status(400).json({ status: 400, message: "Invalid phone number format", data: null });
@@ -23,13 +24,16 @@ const onboard = async (req, res) => {
     const [day, month, year] = dob.split("/");
     const parsedDob = new Date(`${year}-${month}-${day}`);
 
+    if (file) {
+      const imageUrl = await uploadSingleImageToCloudflare(file, "profile-picture");
+      profilePicture = imageUrl;
+    }
+
     // Create UserDetails linked to the existing User
     const userDetails = new UserDetails({
-
-      username: user.username,
       dob: parsedDob,
       gender,
-      profilePicture,
+      profilePicture: profilePicture,
       phoneNumber, // Save phoneNumber
       userId: user._id,
     });
@@ -43,13 +47,13 @@ const onboard = async (req, res) => {
     });
   } catch (error) {
     logger.error("Error during onboarding:", error);
-    return res.status(500).json({ status: 500, message: "An unexpected error occurred", data: null });
+    return res.status(500).json({ status: 500, message: "An unexpected error occurred" });
   }
 };
 
 const updateUserDetails = async (req, res) => {
-  const { dob, gender, profilePicture, phoneNumber } = req.body; // Include phoneNumber
-
+  const { dob, gender, phoneNumber } = req.body; // Include phoneNumber
+const file = req.file;
   // Validate phone number
   if (phoneNumber && !phoneNumberRegex.test(phoneNumber)) {
     return res.status(400).json({ status: 400, message: "Invalid phone number format", data: null });
@@ -62,7 +66,10 @@ const updateUserDetails = async (req, res) => {
     if (!userDetails) {
       return res.status(404).json({ status: 404, message: "User details not found", data: null });
     }
-
+if (file) {
+  const imageUrl = await uploadSingleImageToCloudflare(file, "profile-picture");
+  profilePicture = imageUrl;
+}
     // Only process dob if it's provided in the request
     if (dob) {
       const [day, month, year] = dob.split("/");

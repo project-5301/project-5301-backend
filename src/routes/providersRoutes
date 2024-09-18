@@ -1,14 +1,32 @@
-const { uploadStorage } = require("../middlewares/multer");
 const express = require("express");
 const router = express.Router();
 const providersController = require("../controller/providersController");
 const authMiddleware = require("../middlewares/authMiddleware");
+const multer = require("multer");
+const upload = multer({});
 
-router.delete('/:providerId',authMiddleware ,providersController.deleteProvider);
-router.post('/createProvider', uploadStorage.single("image"),authMiddleware ,providersController.createProvider);
-router.get('/getAllproviders',authMiddleware ,providersController.getAllProviders);
-router.patch('/:providerId',  authMiddleware,providersController.updateProvider);
+router.delete(
+  "/:providerId",
+  authMiddleware,
+  providersController.deleteProviderDetails
+);
+router.post(
+  "/createProvider",
+  upload.single("img"),
+  authMiddleware,
+  providersController.createProviderDetails
+);
+router.get(
+  "/getAllproviders",
+  authMiddleware,
+  providersController.getAllProvidersDetails
+);
+router.put(
+  "/:providerId",
+  upload.single("img"),
+  authMiddleware,
+  providersController.updateProviderDetails
+);
 
-
-
+router.get("/:id", authMiddleware, providersController.getProviderDetailsById);
 module.exports = router;

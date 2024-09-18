@@ -2,8 +2,11 @@ const mongoose = require('mongoose');
 const logger = require("../utils/logger");
 const User = require("../models/user");
 const Provider = require("../models/provider");
+const { uploadSingleImageToCloudflare } = require("../utils/upload");
+const Class = require("../models/classes")
+const Category = require("../models/category")
 
-const createProvider = async (req, res) => {
+const createProviderDetails = async (req, res) => {
 
     try {
       const { 
@@ -14,22 +17,47 @@ const createProvider = async (req, res) => {
         location, 
         classId, 
         aboutProvider, 
-        img 
       } = req.body;
-  
+      const file = req.file;
       // Ensure required fields are present
-      if (!providerName || !categoryId) {
-        return res.status(400).json({ status:400, message: "Provider name and category ID are required",data:null });
+      if (!providerName || !categoryId || !classId) {
+        return res.status(400).json({ status:400, message: "Provider name and category ID are required"});
       }
   
+      const categoryExists = await Category.findById(categoryId);
+      if (!categoryExists) {
+        return res
+          .status(404)
+          .json({ status: 404, message: "Category not found." });
+      }
+      const classExists = await Class.findById(classId);
+      if (!classExists) {
+        return res
+          .status(404)
+          .json({ status: 404, message: "Class not found." });
+      }
       // Find the user associated with the request
       const user = await User.findById(req.user.id);
       if (!user) {
-        return res.status(404).json({status: 404, message: "User not found",data:null });
+        return res.status(404).json({status: 404, message: "User not found" });
       }
-  
+      if (!user.isProvider) {
+        return res
+          .status(403)
+          .json({
+            status: 403,
+            message: "User is not authorized to create provider details.",
+          });
+      }
+  if (file) {
+    const imageUrl = await uploadSingleImageToCloudflare(
+      file,
+      "img"
+    );
+    user.img = imageUrl;
+  }
       // Create a new provider
-      const provider = new Provider({
+      const providerDetails = new Provider({
         providerName,
         subtitle,
         categoryId,
@@ -37,11 +65,12 @@ const createProvider = async (req, res) => {
         location,
         classId,
         aboutProvider,
-        img
+        img: user.img,
+        providerId: user._id,
       });
   
       // Save the provider
-      const createdProvider = await provider.save();
+      const createdProviderDetails = await providerDetails.save();
   
       // Update the user to mark them as a provider
       await User.findByIdAndUpdate(
@@ -53,109 +82,151 @@ const createProvider = async (req, res) => {
       res.status(201).json({
         status: 201,
         message: "Provider created successfully.",
-        provider: createdProvider
+        provider: createdProviderDetails,
       });
   
     } catch (error) {
       logger.error("Error during provider creation:", error);
-      res.status(500).json({status:500, message: "Failed to create provider.", data:null });
+      res.status(500).json({status:500, message: "Failed to create provider." });
     }
   };
 
-  const getAllProviders = async (req, res) => {
-    try {
-      const providers = await Provider.find({}).select({
-        providerName: 1,
-        subtitle: 1,
-        categoryId: 1,
-        experience: 1,
-        location: 1,
-        classId: 1,
-        aboutProvider: 1,
-        img: 1
-      }).sort({ createdAt: 1 });
-  
-      if (providers.length === 0) {
-        return res.status(404).json({status:404, message: "No providers found.", data:null });
-      }
-  
-      res.status(200).json({
-        status:200,
-        message: "Providers retrieved successfully.",
-        providers
-      });
-    } catch (error) {
-      logger.error("Error retrieving providers:", error);
-      res.status(500).json({ status: 500, message: "Internal Server Error", data:null });
-    }
-  };
+const getAllProvidersDetails = async (req, res) => {
+  try {
+    const providers = await Provider.find();
+    res.status(200).json({
+      status: 200,
+      message: "Providers fetched successfully.",
+      providers,
+    });
+  } catch (error) {
+    logger.error("Error during fetching providers:", error);
+    res
+      .status(500)
+      .json({ status: 500, message: "Failed to fetch providers." });
+  }
+};
 
-  const updateProvider = async (req, res) => {
-    try {
-      const { providerId } = req.params;
-      const updateData = req.body;
-  
-      // Ensure providerId is a valid ObjectId
-      if (!mongoose.Types.ObjectId.isValid(providerId)) {
-        return res.status(400).json({ status: 400, error: "Invalid provider ID format.", data:null });
-      }
-  
-      // Find and update the provider
-      const updatedProvider = await Provider.findByIdAndUpdate(
-        providerId,
-        { $set: updateData },
-        { new: true, runValidators: true }
-      );
-  
-      // Check if provider was found and updated
-      if (!updatedProvider) {
-        return res.status(404).json({ status: 404, error: "Provider not found.", data:null});
-      }
-  
-      res.status(200).json({
-        status: 200,
-        message: "Provider updated successfully.",
-        data: updatedProvider
-      });
-  
-    } catch (error) {
-      logger.error("Error during provider update:", error);
-      res.status(500).json({ status: 500, message: "Failed to update provider.", data: null });
-    }
-  };
 
-  const deleteProvider = async (req, res) => {
-    try {
-      const { providerId } = req.params; // Get providerId from request parameters
-  
-      // Ensure providerId is provided
-      if (!providerId) {
-        return res.status(400).json({ status: 400, message: "Provider ID is required.", data: null });
-      }
-  
-      // Find and delete the provider
-      const deletedProvider = await Provider.findByIdAndDelete(providerId);
-  
-      // Check if provider was found and deleted
-      if (!deletedProvider) {
-        return res.status(404).json({ status: 404, message: "Provider not found.", data: null });
-      }
-  
-      // Respond with success
-      res.status(200).json({
-        status:200,
-        message: "Provider deleted successfully.",
-        data: null
+const updateProviderDetails = async (req, res) => {
+  try {
+    const providerId = req.params.providerId;
+    const {
+      providerName,
+      subtitle,
+      categoryId,
+      experience,
+      location,
+      classId,
+      aboutProvider,
+    } = req.body;
+    const file = req.file;
+
+    const providerDetails = await Provider.findById(providerId);
+    if (!providerDetails) {
+      return res
+        .status(404)
+        .json({ status: 404, message: "Provider not found." });
+    }
+
+    if (providerDetails.providerId.toString() !== req.user.id.toString()) {
+      return res.status(403).json({
+        status: 403,
+        message: "Not authorized to update this provider.",
       });
-  
-    } catch (error) {
-      logger.error("Error during provider deletion:", error);
-      res.status(500).json({ status: 500, message: "Failed to delete provider.", data: null });
+    }
+
+    // Update provider details
+    providerDetails.providerName = providerName || providerDetails.providerName;
+    providerDetails.subtitle = subtitle || providerDetails.subtitle;
+    providerDetails.categoryId = categoryId || providerDetails.categoryId;
+    providerDetails.experience = experience || providerDetails.experience;
+    providerDetails.location = location || providerDetails.location;
+    providerDetails.classId = classId || providerDetails.classId;
+    providerDetails.aboutProvider =
+      aboutProvider || providerDetails.aboutProvider;
+
+    // Upload new image if provided
+    if (file) {
+      providerDetails.img = await uploadSingleImageToCloudflare(file, "img");
+    }
+
+    const updatedProviderDetails = await provider.save();
+
+    res.status(200).json({
+      status: 200,
+      message: "Provider updated successfully.",
+      provider: updatedProviderDetails,
+    });
+  } catch (error) {
+    logger.error("Error during updating provider:", error);
+    res
+      .status(500)
+      .json({ status: 500, message: "Failed to update provider." });
+  }
+};
+
+const deleteProviderDetails = async (req, res) => {
+  try {
+    const providerId = req.params.providerId;
+
+    const providerDetails = await Provider.findById(providerId);
+    if (!providerDetails) {
+      return res
+        .status(404)
+        .json({ status: 404, message: "Provider not found." });
+    }
+    console.log(providerDetails.providerId);
+    if (providerDetails.providerId.toString() !== req.user.id.toString()) {
+      return res.status(403).json({
+        status: 403,
+        message: "Not authorized to delete this provider.",
+      });
+    }
+
+    await providerDetails.deleteOne();
+
+    res.status(200).json({
+      status: 200,
+      message: "Provider deleted successfully.",
+    });
+  } catch (error) {
+    logger.error("Error during deleting provider:", error);
+    res
+      .status(500)
+      .json({ status: 500, message: "Failed to delete provider." });
+  }
+};
+
+const getProviderDetailsById = async (req, res) => {
+  try {
+    const providerId = req.params.id;
+    const providerDetails = await Provider.findById(providerId);
+
+    if (!providerDetails) {
+      return res
+        .status(404)
+        .json({ status: 404, message: "Provider Details not found." });
+    }
+
+    res.status(200).json({
+      status: 200,
+      message: "Provider Details fetched successfully.",
+      providerDetails,
+    });
+  } catch (error) {
+    logger.error("Error during fetching Provider Details:", error);
+    res
+      .status(500)
+      .json({ status: 500, message: "Failed to fetch Provider Details." });
+  }
+};
 
 
 module.exports = {
-  createProvider,
-  getAllProviders,
-  updateProvider,
-  deleteProvider
+  createProviderDetails,
+  getAllProvidersDetails,
+  updateProviderDetails,
+  deleteProviderDetails,
+  getProviderDetailsById,
 };

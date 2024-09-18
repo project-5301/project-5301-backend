@@ -64,7 +64,6 @@ const fetch = async (req, res) => {
 // Update a class by ID
 const update = async (req, res) => {
   try {
-    // const { id } = req.params;
     const {classId} = req.params;
     const { name, price, optionsAvailable } = req.body;
 
@@ -79,7 +78,6 @@ const update = async (req, res) => {
       return res.status(404).json({
          status: 404,
         message: "Class not found",
-        data: null,
       });
     }
 
@@ -89,11 +87,11 @@ const update = async (req, res) => {
       data: updatedClass,
     });
   } catch (error) {
-    logger.error("Error during class update:", error);
+
     return res.status(500).json({ 
       status: 500,
       message: "An unexpected error occurred during class update",
-      data: null,
+      error: error.message
      });
   }
 };
@@ -110,21 +108,17 @@ const remove = async (req, res) => {
       return res.status(404).json({
         status: 404,
         message: "Class not found",
-        data: null,
        });
     }
 
     return res.status(200).json({ 
        status: 200,
       message: "Class deleted successfully",
-      data: null,
     });
   } catch (error) {
-    logger.error("Error during class deletion:", error);
     return res.status(500).json({
       status: 500,
       message: "An unexpected error occurred during class deletion",
-      data: null,
     });
   }
 };

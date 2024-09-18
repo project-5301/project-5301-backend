@@ -6,18 +6,19 @@ const crypto = require("crypto");
 require("dotenv").config();
 const logger = require("../utils/logger");
 const { sendEmail } = require("./emailService");
+const { response } = require("express");
 
 // Register User
 const registerUser = async (req, res) => {
   const { username, email, password, isProvider } = req.body;
   try {
     if (!email || email.trim() === '') { 
-      return res.status(400).json({ status: 400, message: "A valid email is required", token: null, data: null });
+      return res.status(400).json({ status: 400, message: "A valid email is required" });
   }
     // Check if user already exists
     let user = await User.findOne({ email });
     if (user) {
-      return res.status(400).json({ status: 400, message: "User already exists", token: null, data: null });
+      return res.status(400).json({ status: 400, message: "User already exists" });
     }
 
     // Default isProvider to false if not provided
@@ -45,7 +46,7 @@ const registerUser = async (req, res) => {
     });
   } catch (err) {
     logger.error(err.message);
-    res.status(500).json({ status: 500, message: 'Server error', token: null, data: null });
+    res.status(500).json({ status: 500, message: 'Server error' });
   }
 };
 
@@ -57,13 +58,13 @@ const registerProvider = async (req, res) => {
   try {
 
     if (!email || email.trim() === '') { 
-      return res.status(400).json({ status: 400, message: "A valid email is required", data: null });
+      return res.status(400).json({ status: 400, message: "A valid email is required" });
   }
 
     // Check if user already exists
     let user = await User.findOne({ email });
     if (user) {
-      return res.status(400).json({ status: 400, message: "User already exists", data: null });
+      return res.status(400).json({ status: 400, message: "User already exists" });
     }
 
 
@@ -81,18 +82,20 @@ const registerProvider = async (req, res) => {
     // Generate JWT token
     const token = generateToken(user);
     await user.save();
+    const providerId = user._id;
     const { password: _, ...userDetails } = user.toObject();
     res.status(201).json({
       status: 201,
       message: "User registered successfully",
       token,
       data: {
-        ...userDetails
+        ...userDetails,
+        providerId
       },
     });
   } catch (err) {
     logger.error(err.message);
-    res.status(500).json({ status: 500, message: 'Server error', token: null, data: null });
+    res.status(500).json({ status: 500, message: 'Server error' });
   }
 };
 
@@ -106,30 +109,36 @@ const loginUser = async (req, res) => {
   try {
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(401).json({ status: 401, message: "Invalid credentials", token: null, data: null });
+      return res.status(401).json({ status: 401, message: "Invalid credentials" });
     }
 
     // Check if token is blacklisted
     if (user.blacklistedTokens.includes(req.header("Authorization")?.replace("Bearer ", ""))) {
-      return res.status(403).json({ status: 403, message: "Token is blacklisted, please log in again", token: null, data: null });
+      return res.status(403).json({ status: 403, message: "Token is blacklisted, please log in again" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ status: 401, message: "Invalid credentials", token: null, data: null });
+      return res.status(401).json({ status: 401, message: "Invalid credentials" });
     }
 
     const token = generateToken(user);
 
+     const responseData = {
+      // Include 'providerId' or 'userId' based on the isProvider flag
+      [user.isProvider ? 'providerId' : 'userId']: user._id,
+      isProvider: user.isProvider,
+    };
+    
     res.status(200).json({
       status: 200,
       message: "User logged in successfully",
       token,
-      data: null
+      responseData
     });
   } catch (err) {
     logger.error("Error during user login:", err);
-    res.status(500).json({ status: 500, message: 'Server error', token: null, data: null });
+    res.status(500).json({ status: 500, message: 'Server error' });
   }
 };
 
@@ -139,7 +148,7 @@ const logoutUser = async (req, res) => {
 
   try {
     if (!token) {
-      return res.status(401).json({ status: 401, message: "No token provided", token: null, data: null });
+      return res.status(401).json({ status: 401, message: "No token provided" });
     }
 
     // Verify the token and decode user ID
@@ -149,7 +158,7 @@ const logoutUser = async (req, res) => {
     // Find the user by ID
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ status: 404, message: "User not found", token: null, data: null });
+      return res.status(404).json({ status: 404, message: "User not found" });
     }
 
     // Add the token to the blacklist
@@ -164,54 +173,54 @@ const logoutUser = async (req, res) => {
     });
   } catch (err) {
     logger.error("Error during user logout:", err);
-    res.status(500).json({ status: 500, message: "Server error", token: null, data: null });
+    res.status(500).json({ status: 500, message: "Server error" });
   }
 };
 
 // Forgot Password
-const forgetPassword = async (req, res) => {
-  const { email } = req.body;
+// const forgetPassword = async (req, res) => {
+//   const { email } = req.body;
 
-  try {
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ status: 400, message: "User does not exist", token: null, data: null });
-    }
+//   try {
+//     const user = await User.findOne({ email });
+//     if (!user) {
+//       return res.status(400).json({ status: 400, message: "User does not exist", token: null, data: null });
+//     }
 
-    const resetToken = crypto.randomBytes(20).toString("hex");
-    const resetPasswordExpire = Date.now() + 3600000;
+//     const resetToken = crypto.randomBytes(20).toString("hex");
+//     const resetPasswordExpire = Date.now() + 3600000;
 
-    user.resetPasswordToken = resetToken;
-    user.resetPasswordExpire = resetPasswordExpire;
-    await user.save();
+//     user.resetPasswordToken = resetToken;
+//     user.resetPasswordExpire = resetPasswordExpire;
+//     await user.save();
 
-    const subject = "Password reset";
-    const text = `You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n
-                   Please click on the following link, or paste this into your browser to complete the process:\n\n
-                   http://${req.headers.host}/reset/${resetToken}\n\n
-                   If you did not request this, please ignore this email and your password will remain unchanged.\n`;
+//     const subject = "Password reset";
+//     const text = `You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n
+//                    Please click on the following link, or paste this into your browser to complete the process:\n\n
+//                    http://${req.headers.host}/reset/${resetToken}\n\n
+//                    If you did not request this, please ignore this email and your password will remain unchanged.\n`;
 
-    await sendEmail(email, subject,text);
+//     await sendEmail(email, subject,text);
 
-    res.status(200).json({
-      status: 200,
-      message: "Password reset email sent successfully",
-      token: null,
-      data: null
-    });
-  } catch (err) {
-    res.status(500).json({ status: 500, message: 'Server error', token: null, data: null });
-  }
-};
+//     res.status(200).json({
+//       status: 200,
+//       message: "Password reset email sent successfully",
+//       token: null,
+//       data: null
+//     });
+//   } catch (err) {
+//     res.status(500).json({ status: 500, message: 'Server error', token: null, data: null });
+//   }
+// };
 
 // Update Password
 const updatePassword = async (req, res) => {
-  const { oldPassword, newPassword, phoneNumber } = req.body; // Include phoneNumber
+  const { oldPassword, newPassword} = req.body; 
   const token = req.header("Authorization")?.replace("Bearer ", "");
 
   try {
     if (!token) {
-      return res.status(401).json({ status: 401, message: "No token, authorization denied", data: null });
+      return res.status(401).json({ status: 401, message: "No token, authorization denied" });
     }
 
     // Verify the token and decode user ID
@@ -221,17 +230,14 @@ const updatePassword = async (req, res) => {
     // Find the user by ID
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({status:404, message: "User not found",data:null });
+      return res.status(404).json({status:404, message: "User not found"});
     }
 
     // Verify old password
     const isMatch = await bcrypt.compare(oldPassword, user.password);
     if (!isMatch) {
-      return res.status(400).json({status:400, message: "Old password is incorrect",data:null });
+      return res.status(400).json({status:400, message: "Old password is incorrect"});
     }
-
-    // Update phone number
-    user.phoneNumber = phoneNumber || user.phoneNumber; // Update phoneNumber
 
     // Hash and update new password
     user.password = await bcrypt.hash(newPassword, 10);
@@ -240,11 +246,10 @@ const updatePassword = async (req, res) => {
     res.status(200).json({
       status: 200,
       message: "Password updated successfully",
-      data:null,
     });
   } catch (err) {
     logger.error("Error updating password:", err.message);
-    res.status(500).json({status:500, message: 'Server error',data: null});//json({status:404, message: "User not found" });
+    res.status(500).json({status:500, message: 'Server error'});
   }
 };
 
@@ -252,17 +257,17 @@ const updatePassword = async (req, res) => {
 const getUserByEmail = async (req, res) => {
   try {
     const { userEmail } = req.body;
-    const user = await User.findOne({ userEmail: userEmail });
+    const user = await User.findOne({ email: userEmail });
     if (!user) {
       return res.status(404).json({status:404, message: "User not found" });
     }
 
     // Exclude the password from the response
-    const { password, ...userDetails } = user.toObject();
+    const { password,resetPasswordExpire,resetPasswordToken, ...userDetails } = user.toObject();
 
     res.status(200).json({
       status: "success",
-      userDetails: [userDetails],
+      userDetails
     });
   } catch (error) {
     res.status(500).json({status:500, message: error.message });
@@ -306,6 +311,7 @@ const sendOTP = async (req, res) => {
 
     // Send the OTP via email
 
+    console.log(otp)
     await sendEmail(userEmail, subject, html);
     res.status(200).json({ message: 'OTP sent to email successfully' });
   } catch (err) {
@@ -317,49 +323,97 @@ const sendOTP = async (req, res) => {
 const verifyOTP = async (req, res) => {
   const { userEmail, otp } = req.body;
 
+  if (!userEmail || !otp) {
+    return res
+      .status(400)
+      .json({ status: 400, message: "Email and OTP are required", data: null });
+  }
+
   try {
-    // Check if the user exists and if the OTP is valid
-    const user = await User.findOne({ userEmail, resetPasswordToken: otp });
-    if (!user || user.resetPasswordExpire < Date.now()) {
-      return res.status(400).json({status:400, message: 'Invalid or expired OTP',data:null });
+    console.log(`Verifying OTP for email: ${userEmail} and OTP: ${otp}`);
+
+    // Find the user
+    const user = await User.findOne({
+      email: userEmail,
+      resetPasswordToken: otp,
+    });
+
+    if (!user) {
+      return res
+        .status(400)
+        .json({ status: 400, message: "Invalid OTP", data: null });
     }
-    res.status(200).json({status:200, message: 'OTP verified successfully' });
+
+    const currentTime = Date.now();
+    console.log(`Current Time: ${currentTime}`);
+
+    // Convert expiry date to milliseconds
+    const expiryTime = new Date(user.resetPasswordExpire).getTime();
+    console.log(`Expiry Time: ${expiryTime}`);
+
+    // Check OTP expiry
+    if (expiryTime < currentTime) {
+      return res
+        .status(400)
+        .json({ status: 400, message: "Expired OTP", data: null });
+    }
+
+    res.status(200).json({ status: 200, message: "OTP verified successfully" });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({status:500, message: 'Server error' });
+    console.error("Error verifying OTP:", err);
+    res.status(500).json({ status: 500, message: "Server error", data: null });
   }
 };
 
+
+
+
 const changePassword = async (req, res) => {
-  const { userEmail, otp, newPassword } = req.body;
+  const { userEmail, newPassword } = req.body;
+
+  if (!userEmail || !newPassword) {
+    return res
+      .status(400)
+      .json({
+        status: 400,
+        message: "Email new password are required",
+        data: null,
+      });
+  }
 
   try {
-    // Check if the vendor exists and if the OTP is valid
-    const user = await User.findOne({ userEmail, resetPasswordToken: otp });
-    if (!user || user.resetPasswordExpire < Date.now()) {
-      return res.status(400).json({status:400, message: 'Invalid or expired OTP',data:null });
-    }
+    // Check if the user exists and if the OTP is valid
+    const user = await User.findOne({
+      email: userEmail,
+    });
 
+    if (!user) {
+      return res
+        .status(400)
+        .json({ status: 400, message: "Invalid OTP", data: null });
+    }
+    // Hash the new password and update the user
     user.password = await bcrypt.hash(newPassword, 10);
-    // Clear the reset token and expiration
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpire = undefined;
+
 
     await user.save();
 
-    res.status(200).json({status:200, message: 'Password changed successfully' });
+    res
+      .status(200)
+      .json({ status: 200, message: "Password changed successfully" });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({status:500, message: 'Server error' });
-  };
+    console.error("Error changing password:", err);
+    res.status(500).json({ status: 500, message: "Server error", data: null });
+  }
 };
+
 
 module.exports = {
   registerUser,
   registerProvider,
   loginUser,
   logoutUser,
-  forgetPassword,
+  // forgetPassword,
   updatePassword,
   getUserByEmail,
   sendOTP, verifyOTP, changePassword

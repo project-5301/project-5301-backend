@@ -101,7 +101,7 @@ router.post('/login', loginUser);
  *       500:
  *         description: Server error
  */
-router.post('/forget', forgetPassword);
+// router.post('/forget', forgetPassword);
 
 router.post('/update-password', authMiddleware, updatePassword);
 

@@ -1,25 +1,40 @@
 const multer = require("multer");
-const fs = require("fs");
+const path = require("path");
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-      fs.mkdirSync('./uploads', {recursive: true})
-      return cb(null, "./uploads")
-  },
-  filename: (req, file, cb) => {
-      return cb(null, Date.now() + "-" + file.originalname)
-  },
-})
+// Set up storage engine
+const storage = multer.memoryStorage();
 
-const uploadStorage = multer({
-    storage: storage,
-    limits: 1024*1024*6,
-    fileFilter: (req,file,cb) => {
-      if(file.fieldname === 'image' && file.size > 1024*1024*6) {
-        return cb(new Error("image file size exceeds 6MB"));
-      }
-      cb(null, true);
-    }
-})
+// const storage = multer.diskStorage({
+//   destination: function (req, file, cb) {
+//     cb(null, "uploads/");
+//   },
+//   filename: function (req, file, cb) {
+//     const projectName = req.body.title.replace(/\s+/g, "_");
+//     const projectId = req.params.projectId || "new";
+//     const date = new Date().toISOString().replace(/:/g, "-");
+//     const ext = path.extname(file.originalname);
+//     const filename = `${projectName}-${date}${ext}`;
+//     cb(null, filename);
+//   },
+// });
 
-module.exports = { uploadStorage }
+const fileFilter = (req, file, cb) => {
+  if (
+    file.mimetype === "application/pdf" ||
+    file.mimetype === "image/jpeg" ||
+    file.mimetype === "image/jpg" ||
+    file.mimetype === "image/png"
+  ) {
+    cb(null, true);
+  } else {
+    cb(new Error("Invalid file type, only PDF and images are allowed!"), false);
+  }
+};
+
+const upload = multer({
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: { fileSize: 1024 * 1024 * 10 }, // Limit to 10MB
+});
+
+module.exports = upload;

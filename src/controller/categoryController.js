@@ -7,12 +7,12 @@ exports.addCategoryDetail = async (req, res) => {
     const { categoryName } = req.body;
     const userId = req.user.id;
     const user = await User.findById(userId);
-    if (!categoryId || !categoryName) {
-      return res.status(400).json({ status: 400, message: 'All fields are required', data: null });
+    if (!categoryName) {
+      return res.status(400).json({ status: 400, message: 'Category Name is required'});
 
     }    
     if (!user) {
-      return res.status(404).json({ status: 404, message: "User not found", data: null });
+      return res.status(404).json({ status: 404, message: "User not found" });
     }
     const categoryDetail = new CategoryDetails({
       categoryName,
@@ -23,13 +23,12 @@ exports.addCategoryDetail = async (req, res) => {
     res.status(201).json({
       status: 201,
       message: "Category detail added successfully",
-      data: categoryDetail,
+      data: categoryDetail
     });
   } catch (error) {
     res.status(400).json({
       status: 400,
       message: error.message,
-      data: null,
     });
   }
 };
@@ -176,7 +175,7 @@ exports.getCategoryDetailById = async (req, res) => {
 };
 
 // Get all category details
-exports.getAllCategoryDetails = async (req, res) => {
+exports.getAllCategoryDetailsByUser = async (req, res) => {
   try {
     const userId = req.user.id;
     const user = await User.findById(userId);
@@ -196,6 +195,36 @@ exports.getAllCategoryDetails = async (req, res) => {
     // Respond with error
     res.status(400).json({
       status: 400,
+      message: error.message,
+      data: null,
+    });
+  }
+};
+
+exports.getAllCategoryDetails = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Find the user by ID
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Find all category details
+    const categoryDetails = await CategoryDetails.find(); // Assuming you want all categories
+
+    // Respond with success
+    res.status(200).json({
+      status: 200,
+      message: "All category details retrieved successfully",
+      data: categoryDetails,
+    });
+  } catch (error) {
+    // Respond with error
+    console.error("Error retrieving category details:", error); // Optional error logging
+    res.status(500).json({
+      status: 500,
       message: error.message,
       data: null,
     });
