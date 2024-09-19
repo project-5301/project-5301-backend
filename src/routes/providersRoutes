@@ -21,6 +21,11 @@ router.get(
   authMiddleware,
   providersController.getAllProvidersDetails
 );
+router.get(
+  "/getAllproviders/:categoryId",
+  authMiddleware,
+  providersController.getAllProvidersDetailsByCategory
+);
 router.put(
   "/:providerId",
   upload.single("img"),
@@ -29,4 +34,10 @@ router.put(
 );
 
 router.get("/:id", authMiddleware, providersController.getProviderDetailsById);
+
+router.get(
+  "/getProviderDetails/:providerId",
+  authMiddleware,
+  providersController.getProviderDetailsForAProvider
+);
 module.exports = router;

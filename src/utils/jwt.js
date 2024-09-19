@@ -6,7 +6,7 @@ const generateToken = (user) => {
     return jwt.sign(
         { id: user._id, isProvider: user.isProvider },
         secret,
-        { expiresIn: '1y' }
+        { expiresIn: '365d' }
     );
 };
 
