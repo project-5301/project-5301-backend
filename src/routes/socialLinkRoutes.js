@@ -9,14 +9,14 @@ const {
 const authMiddleware = require("../middlewares/authMiddleware");
 
 // Add a new social link for a provider
-router.post("/:id", authMiddleware, addSocialLink);
+router.post("/", authMiddleware, addSocialLink);
 
 // Update a specific social link for a provider
-router.put("/:id/:socialId",authMiddleware, updateSocialLink);
+router.put("/:socialId",authMiddleware, updateSocialLink);
 
-router.delete("/:id/:socialId", authMiddleware, removeSocialLink);
+router.delete("/:socialId", authMiddleware, removeSocialLink);
 
 // Get all social links for a provider
-router.get("/:id", getSocialLinks);
+router.get("/", authMiddleware, getSocialLinks);
 
 module.exports = router;
