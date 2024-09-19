@@ -2,19 +2,15 @@ const ProviderDetails = require("../models/providerDetails")
 const User = require("../models/user")
 const addSocialLink = async (req, res) => {
   try {
-    const { id } = req.params;
+    const  userId  = req.user.id;
     const { platform, url } = req.body;
 
-    const provider = await ProviderDetails.findById(id);
+    const provider = await ProviderDetails.findOne({ providerId: userId });
+    console.log("Fetched Provider:", provider);
     if (!provider) {
       return res.status(404).json({ message: "Provider not found" });
     }
 
-    if (provider.providerId.toString() !== req.user.id.toString()) {
-      return res
-        .status(403)
-        .json({ message: "Unauthorized to add social link" });
-    }
     provider.socialLinks.push({ platform, url });
     await provider.save();
 
@@ -30,17 +26,15 @@ const addSocialLink = async (req, res) => {
 
 const updateSocialLink = async (req, res) => {
   try {
-    const { id, socialId } = req.params;
+    const userId = req.user.id
+    const {  socialId } = req.params;
     const { platform, url } = req.body;
 
-    const provider = await ProviderDetails.findById(id);
+        const provider = await ProviderDetails.findOne({ providerId: userId });
 
     if (!provider) {
       return res.status(404).json({ message: "Provider not found" });
     }
-  if (provider.providerId.toString() !== req.user.id.toString()) {
-    return res.status(403).json({ message: "Unauthorized to add social link" });
-  }
     const socialLink = provider.socialLinks.id(socialId);
     if (!socialLink) {
       return res.status(404).json({ message: "Social link not found" });
@@ -63,18 +57,14 @@ const updateSocialLink = async (req, res) => {
 
 const removeSocialLink = async (req, res) => {
   try {
-    const { id, socialId } = req.params;
+    const userId = req.user.id
+    const { socialId } = req.params;
 
-    const provider = await ProviderDetails.findById(id);
+const provider = await ProviderDetails.findOne({ providerId: userId });
     if (!provider) {
       return res.status(404).json({ message: "Provider not found" });
     }
-     if (provider.providerId.toString() !== req.user.id.toString()) {
-       return res
-         .status(403)
-         .json({ message: "Unauthorized to remove social link" });
-     }
-   await ProviderDetails.findByIdAndUpdate(id, {
+   await ProviderDetails.findByIdAndUpdate(provider._id, {
      $pull: { socialLinks: { _id: socialId } },
    });
     await provider.save();
@@ -91,9 +81,9 @@ const removeSocialLink = async (req, res) => {
 
 const getSocialLinks = async (req, res) => {
   try {
-    const { id } = req.params;
+    const userId = req.user.id;
 
-    const provider = await ProviderDetails.findById(id);
+    const provider = await ProviderDetails.findOne({ providerId: userId });
     if (!provider) {
       return res.status(404).json({ message: "Provider not found" });
     }
