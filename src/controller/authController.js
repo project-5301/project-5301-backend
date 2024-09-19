@@ -99,9 +99,6 @@ const registerProvider = async (req, res) => {
   }
 };
 
-
-
-
 // Login User
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
@@ -110,11 +107,6 @@ const loginUser = async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(401).json({ status: 401, message: "Invalid credentials" });
-    }
-
-    // Check if token is blacklisted
-    if (user.blacklistedTokens.includes(req.header("Authorization")?.replace("Bearer ", ""))) {
-      return res.status(403).json({ status: 403, message: "Token is blacklisted, please log in again" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
@@ -134,7 +126,7 @@ const loginUser = async (req, res) => {
       status: 200,
       message: "User logged in successfully",
       token,
-      responseData
+      responseData, user
     });
   } catch (err) {
     logger.error("Error during user login:", err);
@@ -148,10 +140,12 @@ const logoutUser = async (req, res) => {
 
   try {
     if (!token) {
-      return res.status(401).json({ status: 401, message: "No token provided" });
+      return res
+        .status(401)
+        .json({ status: 401, message: "No token provided" });
     }
 
-    // Verify the token and decode user ID
+    // Verify the token
     const decoded = jwt.verify(token, process.env.SECRETKEY);
     const userId = decoded.id;
 
@@ -162,56 +156,20 @@ const logoutUser = async (req, res) => {
     }
 
     // Add the token to the blacklist
-    user.blacklistedTokens.push(token);
+    user.blacklistToken(token); // Add the token to the blacklist using the schema method
     await user.save();
 
     res.status(200).json({
       status: 200,
       message: "Logged out successfully",
-      token: null,
-      data: null
     });
   } catch (err) {
     logger.error("Error during user logout:", err);
-    res.status(500).json({ status: 500, message: "Server error" });
+    res.status(500).json({ status: 500, message: "Server error", error: err.message });
   }
 };
 
-// Forgot Password
-// const forgetPassword = async (req, res) => {
-//   const { email } = req.body;
 
-//   try {
-//     const user = await User.findOne({ email });
-//     if (!user) {
-//       return res.status(400).json({ status: 400, message: "User does not exist", token: null, data: null });
-//     }
-
-//     const resetToken = crypto.randomBytes(20).toString("hex");
-//     const resetPasswordExpire = Date.now() + 3600000;
-
-//     user.resetPasswordToken = resetToken;
-//     user.resetPasswordExpire = resetPasswordExpire;
-//     await user.save();
-
-//     const subject = "Password reset";
-//     const text = `You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n
-//                    Please click on the following link, or paste this into your browser to complete the process:\n\n
-//                    http://${req.headers.host}/reset/${resetToken}\n\n
-//                    If you did not request this, please ignore this email and your password will remain unchanged.\n`;
-
-//     await sendEmail(email, subject,text);
-
-//     res.status(200).json({
-//       status: 200,
-//       message: "Password reset email sent successfully",
-//       token: null,
-//       data: null
-//     });
-//   } catch (err) {
-//     res.status(500).json({ status: 500, message: 'Server error', token: null, data: null });
-//   }
-// };
 
 // Update Password
 const updatePassword = async (req, res) => {

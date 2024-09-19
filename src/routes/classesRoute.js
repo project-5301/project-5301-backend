@@ -32,4 +32,16 @@ router.get(
     classController.allClasses
 );
 
+router.get("/total/count/:providerId", authMiddleware, classController.totalClassCount);
+router.get(
+  "/available/count/:providerId",
+  authMiddleware,
+  classController.availableClassCount
+);
+
+router.get("/get/analysis", authMiddleware, classController.getClassAnalysis);
+
+router.get("/classes/provider", authMiddleware, classController.classesByProvider);
+
+
 module.exports = router;

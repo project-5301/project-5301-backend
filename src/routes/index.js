@@ -4,27 +4,26 @@ const router = express.Router();
 const authRoutes = require("./authRoutes");
 const category = require("./categoryRoutes");
 const userRoutes = require("./usersRoutes");
-const notificationRoutes = require("./notificationRoutes");
 const classRoutes = require("./classesRoute");
 
 const providersRoutes = require("./providersRoutes");
+const workSampleRoutes = require("./workSampleRoutes")
 
-//const getCampaignAnalyticsRoutes = require("./campaignAnalyticsRoutes"); 
-// const authMiddleware = require("../middlewares/authMiddleware");
-const overviewController = require("../controller/overviewController");
+const socialLinkRoutes = require("./socialLinkRoutes")
+const topRoutes = require("./topRoutes")
+const deleteRoutes = require("./deleteRoutes")
 
 router.use("/auth", authRoutes);
 router.use("/category", category);
-//router.use("/sub-category", subCategory);
-//router.use("/campaigns", camapignRoutes);
 router.use("/user", userRoutes);
-router.use("/notifications", notificationRoutes);
 
 router.use("/providers", providersRoutes);
 router.use("/class", classRoutes);
-//router.use("/campaign-analytics", getCampaignAnalyticsRoutes);
-
-router.use("/analytics/overview", overviewController.overview);
 
 
+router.use("/work-samples", workSampleRoutes); 
+
+router.use("/social-links", socialLinkRoutes );
+router.use("/top-providers", topRoutes)
+router.use("/delete", deleteRoutes)
 module.exports = router;
