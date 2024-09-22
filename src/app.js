@@ -12,7 +12,7 @@ app.use(bodyParser.json());
 app.use(express.json()); 
 app.use(express.urlencoded({ extended: true }));
 
-// Routes
+// Routes Api
 app.use('/api', routes);
 swaggerDocs(app);
 connectDB();
