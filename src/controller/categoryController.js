@@ -1,202 +1,102 @@
-const CategoryDetails = require("../models/category");
-const User = require("../models/user");
+const Category = require("../models/category");
+const {uploadSingleImageToCloudflare} = require("../utils/upload")
 
-// Add new category detail
-exports.addCategoryDetail = async (req, res) => {
+const createCategory = async (req, res) => {
   try {
     const { categoryName } = req.body;
-    const userId = req.user.id;
-    const user = await User.findById(userId);
-    if (!categoryName) {
-      return res.status(400).json({ status: 400, message: 'Category Name is required'});
-
-    }    
-    if (!user) {
-      return res.status(404).json({ status: 404, message: "User not found" });
-    }
-    const categoryDetail = new CategoryDetails({
+    let categoryImage = null;
+    const file = req.file;
+    const imageUrl = await uploadSingleImageToCloudflare(file, "image");
+    categoryImage = imageUrl;
+    const category = new Category({
       categoryName,
-      createdBy: userId,
+      categoryImage,
     });
-    await categoryDetail.save();
 
-    res.status(201).json({
-      status: 201,
-      message: "Category detail added successfully",
-      data: categoryDetail
-    });
+    await category.save();
+    res
+      .status(201)
+      .json({status: 201, message: "Category created successfully", category });
   } catch (error) {
-    res.status(400).json({
-      status: 400,
-      message: error.message,
-    });
+    res.status(500).json({status: 500, message: "Failed to create category", error: error.message });
   }
 };
 
-// Update category detail
-exports.updateCategoryDetail = async (req, res) => {
+// Get all categories
+const getAllCategories = async (req, res) => {
   try {
-    const { categoryID } = req.params;
+    const categories = await Category.find();
+    res.status(200).json(categories);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch categories" });
+  }
+};
+
+// Get category by ID
+const getCategoryById = async (req, res) => {
+  try {
+    const category = await Category.findById(req.params.id);
+
+    if (!category) {
+      return res.status(404).json({ error: "Category not found" });
+    }
+
+    res.status(200).json(category);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch category" });
+  }
+};
+
+// Update category
+const updateCategory = async (req, res) => {
+  try {
     const { categoryName } = req.body;
-    const userId = req.user.id;
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ status: 404, message: "User not found", data: null });
-    }
-    const foundCategoryDetails = await CategoryDetails.findById(categoryID);
-    if (!foundCategoryDetails) {
-      return res.status(404).json({
-        status: 404,
-        message: "Category detail not found",
-      });
-    }
-
-    if(foundCategoryDetails.createdBy.toString() !== userId){
-      return res.status(400).json({
-        status: 403,
-        message: "You are not authorized to update this category",    
-        })
-    }
-    const categoryDetail = await CategoryDetails.findByIdAndUpdate(
-      categoryID,
+    let categoryImage = null;
+    const file = req.file;
+    const imageUrl = await uploadSingleImageToCloudflare(file, "image");
+    categoryImage = imageUrl;
+    const category = await Category.findByIdAndUpdate(
+      req.params.id,
       {
-        categoryName
+        categoryName, categoryImage
       },
-      { new: true, runValidators: true }
+      { new: true } // Return the updated document
     );
+    console.log(req.params.id)
 
-    res.status(200).json({
-      status: 200,
-      message: "Category detail updated successfully",
-      data: categoryDetail,
-    });
+    if (!category) {
+      return res.status(404).json({ error: "Category not found" });
+    }
+
+    res
+      .status(200)
+      .json({ message: "Category updated successfully", category });
   } catch (error) {
-    res.status(400).json({
-      status: 400,
-      message: error.message,
-    });
+    res.status(500).json({ error: "Failed to update category" });
   }
 };
 
-// Delete category details
-exports.deleteCategoryDetail = async (req, res) => {
+// Delete category
+const deleteCategory = async (req, res) => {
   try {
-    const { categoryID } = req.params;
+    const category = await Category.findByIdAndDelete(req.params.id);
+    
 
-    const userId = req.user.id;
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({
-        status: 404,
-        message: "Category detail not found",
-        data: null, 
-      });
+    if (!category) {
+      return res.status(404).json({ error: "Category not found" });
     }
 
-    const categoryDetail = await CategoryDetails.findById(categoryID);
-    if (!categoryDetail) {
-      return res.status(404).json({
-        status: "error",
-        message: "Category detail not found",
-      });
-    }
-
-    if (categoryDetail.createdBy.toString() !== userId) {
-      return res.status(403).json({
-        status: 403,
-        message: "You are not authorized to delete this category detail",
-        data: null,
-      });
-    }
-
-    await CategoryDetails.findByIdAndDelete(categoryID);
-
-    res.status(200).json({
-      status: 200,
-      message: "Category detail deleted successfully",
-    });
+    res.status(200).json({ message: "Category deleted successfully" });
   } catch (error) {
-    res.status(400).json({
-      status: 400,
-      message: error.message,
-    });
+    res.status(500).json({ error: "Failed to delete category" });
   }
 };
 
-// Get category detail by ID
-exports.getCategoryDetailById = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const userId = req.user.id;
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ status: 404, message: "User not found", data: null });
-    }
-    const categoryDetail = await CategoryDetails.findById(id);
-
-    if (!categoryDetail) {
-      return res.status(404).json({
-        status: 404,
-        message: "Category detail not found",
-      });
-    }
-    res.status(200).json({
-
-      status: 200,
-      message: "Category detail retrieved successfully",
-      data: categoryDetail,
-    });
-  } catch (error) {
-    res.status(400).json({
-      status: 400,
-      message: error.message,
-    });
-  }
-};
-
-// Get all category details
-exports.getAllCategoryDetailsByUser = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-    const categoryDetails = await CategoryDetails.find({ createdBy: userId }).sort({createdAt: -1});
-    res.status(200).json({
-      status: 200,
-      message: "All category details retrieved successfully",
-      data: categoryDetails,
-    });
-  } catch (error) {
-    res.status(400).json({
-      status: 400,
-      message: error.message,
-    });
-  }
-};
-
-exports.getAllCategoryDetails = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    const categoryDetails = await CategoryDetails.find(); 
-
-    res.status(200).json({
-      status: 200,
-      message: "All category details retrieved successfully",
-      data: categoryDetails,
-    });
-  } catch (error) {
-    console.error("Error retrieving category details:", error); 
-    res.status(500).json({
-      status: 500,
-      message: error.message,
-    });
-  }
+// Export all the functions
+module.exports = {
+  createCategory,
+  getAllCategories,
+  getCategoryById,
+  updateCategory,
+  deleteCategory,
 };
