@@ -3,24 +3,17 @@ const Schema = mongoose.Schema;
 const User = require("./user");
 
 const CategorySchema = new Schema(
-  {
-    // categoryId: {
-    //   type: String,
-    //   required: true,
-    //   unique: true,
-    // },    
+  {   
     categoryName: {
       type: String,
       required: true,
     },
-    createdBy: {
-      type: Schema.Types.ObjectId,
-      ref: User.modelName,
+    categoryImage:{
+      type: String
     },
   },
   {
     timestamps: true,
-    strict: false,
   }
 );
 

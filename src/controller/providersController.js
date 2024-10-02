@@ -78,7 +78,7 @@ const createProviderDetails = async (req, res) => {
       subtitle,
       categoryId,
       experience,
-      location,
+      location: { latitude: location.latitude, longitude: location.longitude },
       classId,
       aboutProvider,
       phoneNumber,
@@ -185,12 +185,10 @@ const updateProviderDetails = async (req, res) => {
     }
 
     if (providerDetails.providerId.toString() !== req.user.id.toString()) {
-      return res
-        .status(403)
-        .json({
-          status: 403,
-          message: "Not authorized to update this provider.",
-        });
+      return res.status(403).json({
+        status: 403,
+        message: "Not authorized to update this provider.",
+      });
     }
 
     // Handle category IDs
@@ -231,12 +229,10 @@ const updateProviderDetails = async (req, res) => {
         if (classExists.providerId.toString() === req.user.id) {
           validClassIds.add(id);
         } else {
-          return res
-            .status(403)
-            .json({
-              status: 403,
-              message: `You are not authorized to use class ID: ${id}.`,
-            });
+          return res.status(403).json({
+            status: 403,
+            message: `You are not authorized to use class ID: ${id}.`,
+          });
         }
       }
       providerDetails.classId = Array.from(validClassIds);
@@ -275,9 +271,6 @@ const updateProviderDetails = async (req, res) => {
       .json({ status: 500, message: "Failed to update provider." });
   }
 };
-
-
-
 
 const deleteProviderDetails = async (req, res) => {
   try {

@@ -1,39 +1,34 @@
 const express = require("express");
 const router = express.Router();
 const categoryController = require("../controller/categoryController");
-const authMiddleware = require("../middlewares/authMiddleware");
-
+const multer = require('multer');
+const upload = multer();
 // Route to add new category detail
-router.post("/", authMiddleware, categoryController.addCategoryDetail);
+router.post("/", upload.single('image'),  categoryController.createCategory);
 
 // Route to update category detail
 router.put(
-  "/:categoryID",
-  authMiddleware,
-  categoryController.updateCategoryDetail
+  "/:id",
+  upload.single("image"),
+  categoryController.updateCategory
 );
 
 // Route to delete category detail
 router.delete(
-  "/:categoryID",
-  authMiddleware,
-  categoryController.deleteCategoryDetail
+  "/:id", 
+  categoryController.deleteCategory
 );
 
 // Route to get category detail by ID
 router.get(
   "/get/:id",
-  authMiddleware,
-  categoryController.getCategoryDetailById
+  categoryController.getCategoryById
 );
 
-// Route to get all category details by user
-router.get("/", authMiddleware, categoryController.getAllCategoryDetailsByUser);
 
 router.get(
   "/all",
-  authMiddleware,
-  categoryController.getAllCategoryDetails
+  categoryController.getAllCategories
 );
 
 

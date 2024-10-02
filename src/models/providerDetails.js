@@ -23,8 +23,17 @@ const ProviderDetailsSchema = new mongoose.Schema(
     subtitle: { type: String },
     categoryId: { type: [String], ref: "categories", required: true },
     experience: { type: String },
-    location: { type: String },
-    phoneNumber: { type: String }, 
+    location: {
+      latitude: {
+        type: Number,
+        required: true,
+      },
+      longitude: {
+        type: Number,
+        required: true,
+      },
+    },
+    phoneNumber: { type: String },
     classId: { type: [String], ref: "class", required: true },
     aboutProvider: { type: String },
     img: { type: String },
