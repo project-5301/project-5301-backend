@@ -14,6 +14,8 @@ const topRoutes = require("./topRoutes")
 const deleteRoutes = require("./deleteRoutes")
 const infoRoutes = require("./infoRoutes");
 
+const userNotificationPreferenceRoutes = require("./userNotificationPreferenceRoutes");
+
 
 router.use("/auth", authRoutes);
 router.use("/category", category);
@@ -29,5 +31,7 @@ router.use("/social-links", socialLinkRoutes );
 router.use("/top-providers", topRoutes)
 router.use("/delete", deleteRoutes)
 router.use("/info", infoRoutes);
+
+router.use("/user-notification-preference", userNotificationPreferenceRoutes)
 
 module.exports = router;
